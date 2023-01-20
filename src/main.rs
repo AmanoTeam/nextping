@@ -1,50 +1,10 @@
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+mod structs;
+mod utils;
+
+use self::structs::{ActiveServer, Server, ServerInfo};
+use self::utils::{format_rtt, generate_random_string};
+
 use reqwest::{Client, Result};
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Server {
-    pop: String,
-    server: String,
-    ipv4: bool,
-    ipv6: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct ServerInfo {
-    location_name: String,
-    pop: String,
-    rtt: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct ActiveServer {
-    status: String,
-    protocol: String,
-    profile: String,
-    client: String,
-    anycast: bool,
-    server: String,
-    client_name: String,
-    device_name: String,
-}
-
-fn format_rtt(rtt: f64) -> String {
-    let rtt = rtt / 1000.0;
-    format!("{:.1} ms", rtt)
-}
-
-fn generate_random_string(length: usize) -> String {
-    let rand_string: String = thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(length)
-        .map(char::from)
-        .collect();
-
-    rand_string
-}
 
 async fn get_active_server(client: &Client, uuid: &str) -> Result<ActiveServer> {
     let url = format!("https://{}.test.nextdns.io/", uuid);
