@@ -12,7 +12,7 @@ async fn main() {
 
     let request1 = client.get("https://router.nextdns.io/?source=ping").send();
     let request2 = client.get("https://test-ipv6.nextdns.io/").send();
-    let uuid = Uuid::new_v4().to_string();
+    let uuid = Uuid::new_v4().to_string().replace("-", "");
     let active_router = client
         .get(format!("https://{}.test.nextdns.io/", uuid))
         .send();
@@ -42,7 +42,9 @@ async fn main() {
         let ipv4 = server.get("ipv4").unwrap().as_bool().unwrap();
         let ipv6 = server.get("ipv6").unwrap().as_bool().unwrap();
 
-        let is_active = if server_name == active_server["server"].as_str().unwrap() {
+        let is_active = if server_name == active_server["server"].as_str().unwrap()
+            && active_server["status"].as_str().unwrap() == "ok"
+        {
             "■"
         } else {
             " "
