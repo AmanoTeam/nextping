@@ -1,7 +1,6 @@
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use reqwest::{Client, Result};
 use serde::{Deserialize, Serialize};
-
-use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Server {
@@ -35,6 +34,16 @@ struct ActiveServer {
 fn format_rtt(rtt: f64) -> String {
     let rtt = rtt / 1000.0;
     format!("{:.1} ms", rtt)
+}
+
+fn generate_random_string(length: usize) -> String {
+    let rand_string: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .map(char::from)
+        .collect();
+
+    rand_string
 }
 
 async fn get_active_server(client: &Client, uuid: &str) -> Result<ActiveServer> {
@@ -81,8 +90,8 @@ async fn get_info(client: &Client, server: &Server, is_ipv6: bool) -> Option<(St
 async fn main() {
     let client = Client::new();
 
-    let uuid = Uuid::new_v4().to_string().replace('-', "");
-    let active_server = get_active_server(&client, &uuid).await.unwrap();
+    let rand_str = generate_random_string(20);
+    let active_server = get_active_server(&client, &rand_str).await.unwrap();
     let servers = get_servers(&client).await.unwrap();
     let network_supports_ipv6 = check_ipv6(&client).await;
 
