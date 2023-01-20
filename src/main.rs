@@ -26,9 +26,9 @@ async fn main() {
     let (response1, response2) = tokio::join!(request1, request2);
 
     let response1 = response1.unwrap();
-    let response2 = response2.unwrap();
 
-    let network_supports_ipv6 = response2.text().await.unwrap() == "OK";
+    let network_supports_ipv6 =
+        response2.is_ok() && response2.unwrap().text().await.unwrap() == "OK";
 
     for server in response1
         .json::<serde_json::Value>()
