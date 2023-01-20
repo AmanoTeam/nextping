@@ -1,6 +1,6 @@
 use reqwest::{Client, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -9,6 +9,14 @@ struct Server {
     server: String,
     ipv4: bool,
     ipv6: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct ServerInfo {
+    location_name: String,
+    pop: String,
+    rtt: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -54,15 +62,16 @@ async fn check_ipv6(client: &Client) -> bool {
 
 async fn get_info(client: &Client, server: &Server, is_ipv6: bool) -> Option<(String, String)> {
     let protocol = if is_ipv6 { "ipv6" } else { "ipv4" };
-    let url = format!("https://{}-{}.edge.nextdns.io/info", protocol, server.server);
+    let url = format!(
+        "https://{}-{}.edge.nextdns.io/info",
+        protocol, server.server
+    );
     let resp = client.get(&url).send().await;
 
     match resp {
         Ok(r) => {
-            let rjson: Value = r.json().await.unwrap();
-            let pop = rjson["pop"].as_str().unwrap().to_string();
-            let rtt = format_rtt(rjson["rtt"].as_f64().unwrap());
-            Some((pop, rtt))
+            let rjson: ServerInfo = r.json().await.unwrap();
+            Some((rjson.pop, format_rtt(rjson.rtt)))
         }
         _ => None,
     }
@@ -72,15 +81,13 @@ async fn get_info(client: &Client, server: &Server, is_ipv6: bool) -> Option<(St
 async fn main() {
     let client = Client::new();
 
-    let uuid = Uuid::new_v4().to_string().replace("-", "");
+    let uuid = Uuid::new_v4().to_string().replace('-', "");
     let active_server = get_active_server(&client, &uuid).await.unwrap();
     let servers = get_servers(&client).await.unwrap();
     let network_supports_ipv6 = check_ipv6(&client).await;
 
     for server in servers {
-        let is_active = if server.server == active_server.server
-            && active_server.status == "ok"
-        {
+        let is_active = if server.server == active_server.server && active_server.status == "ok" {
             "■"
         } else {
             " "
