@@ -37,7 +37,7 @@ async fn main() {
         };
 
         if ipv4 {
-            let request = client.get(&format!("https://ipv4-{}.edge.nextdns.io/info", server_name)).send();
+            let request = client.get(format!("https://ipv4-{}.edge.nextdns.io/info", server_name)).send();
             let response = request.await.unwrap();
             let rjson = response.json::<serde_json::Value>().await.unwrap();
             let pop = rjson["pop"].as_str().unwrap();
@@ -46,7 +46,7 @@ async fn main() {
         }
 
         if ipv6 && network_supports_ipv6 {
-            let request = client.get(&format!("https://ipv6-{}.edge.nextdns.io/info", server_name)).send();
+            let request = client.get(format!("https://ipv6-{}.edge.nextdns.io/info", server_name)).send();
             let response = request.await.unwrap();
             let rjson = response.json::<serde_json::Value>().await.unwrap();
             let pop = rjson["pop"].as_str().unwrap();
