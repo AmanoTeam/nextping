@@ -17,14 +17,17 @@ pub struct ServerInfo {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "lowercase")]
 pub struct ActiveServer {
     pub status: String,
-    pub protocol: String,
-    pub profile: String,
-    pub client: String,
-    pub anycast: bool,
+    pub resolver: Option<String>,
+    pub protocol: Option<String>,
+    pub profile: Option<String>,
+    pub client: Option<String>,
+    pub srcip: Option<String>,
+    pub anycast: Option<bool>,
     pub server: String,
-    pub client_name: String,
-    pub device_name: String,
+    pub clientname: Option<String>,
+    pub devicename: Option<String>,
+    pub deviceid: Option<String>,
 }

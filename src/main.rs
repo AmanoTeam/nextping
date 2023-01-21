@@ -3,6 +3,7 @@ mod utils;
 
 use self::structs::{ActiveServer, Server, ServerInfo};
 use self::utils::{format_rtt, generate_random_string};
+use std::time::Duration;
 
 use reqwest::{Client, Result};
 
@@ -48,7 +49,10 @@ async fn get_info(client: &Client, server: &Server, is_ipv6: bool) -> Option<(St
 
 #[tokio::main]
 async fn main() {
-    let client = Client::new();
+    let client = Client::builder()
+        .timeout(Duration::from_secs(5))
+        .build()
+        .unwrap();
 
     let rand_str = generate_random_string(20);
     let active_server = get_active_server(&client, &rand_str).await.unwrap();
@@ -65,12 +69,16 @@ async fn main() {
         if server.ipv4 {
             if let Some((pop, rtt)) = get_info(&client, &server, false).await {
                 println!("{} {} {}", is_active, pop, rtt);
+            } else {
+                println!("{} {} error", is_active, server.pop);
             }
         }
 
         if server.ipv6 && network_supports_ipv6 {
             if let Some((pop, rtt)) = get_info(&client, &server, true).await {
                 println!("{} {} (IPv6) {}", is_active, pop, rtt);
+            } else {
+                println!("{} {} (IPv6) error", is_active, server.pop);
             }
         }
     }
