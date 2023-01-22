@@ -3,6 +3,8 @@ mod utils;
 
 use self::structs::{ActiveServer, Server, ServerInfo};
 use self::utils::{format_rtt, generate_random_string};
+use std::net::IpAddr;
+use std::str::FromStr;
 use std::time::Duration;
 
 use reqwest::{Client, Result};
@@ -59,14 +61,23 @@ async fn main() {
     let servers = get_servers(&client).await.unwrap();
     let network_supports_ipv6 = check_ipv6(&client).await;
 
-    for server in servers {
-        let is_active = if server.server == active_server.server && active_server.status == "ok" {
-            "■"
-        } else {
-            " "
-        };
+    let client_ip = if active_server.client.is_some() {
+        IpAddr::from_str(&active_server.client.unwrap()).unwrap()
+    } else {
+        IpAddr::from_str("0.0.0.0").unwrap()
+    };
 
+    for server in servers {
         if server.ipv4 {
+            let is_active = if server.server == active_server.server
+                && active_server.status == "ok"
+                && client_ip.is_ipv4()
+            {
+                "■"
+            } else {
+                " "
+            };
+
             if let Some((pop, rtt)) = get_info(&client, &server, false).await {
                 println!("{} {} {}", is_active, pop, rtt);
             } else {
@@ -75,6 +86,15 @@ async fn main() {
         }
 
         if server.ipv6 && network_supports_ipv6 {
+            let is_active = if server.server == active_server.server
+                && active_server.status == "ok"
+                && client_ip.is_ipv6()
+            {
+                "■"
+            } else {
+                " "
+            };
+
             if let Some((pop, rtt)) = get_info(&client, &server, true).await {
                 println!("{} {} (IPv6) {}", is_active, pop, rtt);
             } else {
