@@ -24,12 +24,9 @@ async fn get_servers(client: &Client) -> Result<Vec<Server>> {
 }
 
 async fn check_ipv6(client: &Client) -> bool {
-    let url = "https://test-ipv6.nextdns.io/";
+    let url = "https://[2606:4700:4700::1111]/cdn-cgi/trace";
     let resp = client.get(url).send().await;
-    match resp {
-        Ok(r) => r.text().await.unwrap() == "OK",
-        _ => false,
-    }
+    resp.is_ok()
 }
 
 async fn get_info(client: &Client, server: &Server, is_ipv6: bool) -> Option<(String, String)> {
